@@ -68,9 +68,13 @@ def generate_text():
         results = response_payload.get("results", [])
         if results:
             output_text = results[0].get("outputText", "No output generated.")
+            output_text.strip()
         else:
             output_text = "No results available."
         print(f"{output_text} is output")
+        if output_text.startswith("?"):
+            output_text = output_text[1:].strip()
+            output_text.strip()
         # return jsonify({"input_text": input_text, "generated_text": output_text})
         return render_template('response.html', input_text=input_text, generated_text=output_text)
 
